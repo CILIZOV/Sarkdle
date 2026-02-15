@@ -909,10 +909,24 @@
                 await audioContext.resume();
             }
 
-            const duration = TIME_REVEALS[currentGuess];
-            
-            // ALWAYS start from the beginning of the song
+            let duration = TIME_REVEALS[currentGuess];
             let startTime = 0;
+            
+            // Guess 1 (index 0): Start from beginning
+            if (currentGuess === 0) {
+                startTime = 0;
+            }
+            // Guesses 2-5 (index 1-4): Random parts of the song
+            else if (currentGuess >= 1 && currentGuess <= 4) {
+                // Get a random start position, ensuring we don't go past the end
+                const maxStart = Math.max(0, audioBuffer.duration - duration - 5);
+                startTime = Math.random() * maxStart;
+            }
+            // Guess 6 (index 5): Play full song from start to finish
+            else if (currentGuess === 5) {
+                startTime = 0;
+                duration = audioBuffer.duration; // Play entire song
+            }
 
             // Create source
             sourceNode = audioContext.createBufferSource();
