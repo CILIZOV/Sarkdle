@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>Sarkdle - Daily Song Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #16161f;
+            --accent-pink: #ff2d6a;
+            --accent-cyan: #00f5d4;
+            --accent-purple: #9b5de5;
+            --text-primary: #ffffff;
+            --text-muted: #7a7a8c;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            color: var(--text-primary);
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(155, 93, 229, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 45, 106, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 245, 212, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            padding-bottom: 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .logo {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 2rem;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            margin-top: 4px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Guess tracker */
+        .guess-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .guess-dot {
+            width: 44px;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .guess-dot.used {
+            background: linear-gradient(90deg, var(--accent-pink), var(--accent-purple));
+            border-color: transparent;
+            box-shadow: 0 0 10px rgba(255, 45, 106, 0.4);
+        }
+
+        .guess-dot.current {
+            animation: pulse 1.5s ease-in-out infinite;
+            border-color: var(--accent-cyan);
+        }
+
+        .guess-dot.correct {
+            background: var(--accent-cyan) !important;
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.6);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.8); }
+        }
+
+        .guess-number {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .guess-number span {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        /* Player section */
+        .player-section {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .waveform {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2px;
+            height: 60px;
+            margin-bottom: 16px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            background: linear-gradient(180deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 2px;
+        }
+
+        .wave-bar.playing {
+            animation: waveAnim 0.5s ease-in-out infinite;
+        }
+
+        @keyframes waveAnim {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+
+        .play-btn-large {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 30px rgba(255, 45, 106, 0.4);
+        }
+
+        .play-btn-large:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn-large svg {
+            width: 26px;
+            height: 26px;
+            fill: white;
+            margin-left: 3px;
+        }
+
+        .play-btn-large.playing svg {
+            margin-left: 0;
+        }
+
+        .time-hint {
+            text-align: center;
+            margin-top: 12px;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .time-hint span {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        /* Hints section */
+        .hints-section {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .hints-section h3 {
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .hint-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .hint-icon {
+            font-size: 1.1rem;
+        }
+
+        .hint-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            min-width: 65px;
+        }
+
+        .hint-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .hint-value.blanks {
+            letter-spacing: 2px;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        /* Input section */
+        .input-section {
+            margin-bottom: 16px;
+        }
+
+        .guess-input {
+            width: 100%;
+            padding: 16px 18px;
+            background: var(--bg-card);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 16px; /* Prevents zoom on iOS */
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .guess-input:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px rgba(155, 93, 229, 0.2);
+        }
+
+        .guess-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .guess-input:disabled {
+            opacity: 0.5;
+        }
+
+        /* Button row with Play + Submit */
+        .button-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .play-btn-small {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(255, 45, 106, 0.3);
+        }
+
+        .play-btn-small:active {
+            transform: scale(0.95);
+        }
+
+        .play-btn-small svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+            margin-left: 2px;
+        }
+
+        .play-btn-small.playing svg {
+            margin-left: 0;
+        }
+
+        .submit-btn {
+            flex: 1;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+        }
+
+        .skip-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background: transparent;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .skip-btn:active:not(:disabled) {
+            border-color: var(--accent-pink);
+            color: var(--accent-pink);
+        }
+
+        .skip-btn:disabled {
+            opacity: 0.3;
+        }
+
+        /* Guess history - now below skip button */
+        .guess-history {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .guess-history h3 {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .history-item {
+            padding: 10px 14px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item .number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .history-item.skipped {
+            border-color: rgba(255, 45, 106, 0.3);
+        }
+
+        .history-item.skipped .text {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .history-item.wrong {
+            border-color: rgba(255, 45, 106, 0.5);
+        }
+
+        .history-item.wrong .text {
+            color: var(--accent-pink);
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+
+        /* How to Play - collapsible */
+        .help-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            font-family: inherit;
+            width: 100%;
+            margin-top: auto;
+            transition: all 0.2s ease;
+        }
+
+        .help-toggle:active {
+            background: var(--glass);
+        }
+
+        .help-toggle svg {
+            width: 18px;
+            height: 18px;
+            fill: var(--text-muted);
+            transition: transform 0.3s ease;
+        }
+
+        .help-toggle.open svg {
+            transform: rotate(180deg);
+        }
+
+        .instructions {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .instructions.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .instructions h3 {
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .instructions p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        /* Result overlay */
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 15, 0.97);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            padding: 20px;
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .result-content {
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .result-overlay.show .result-content {
+            transform: scale(1);
+        }
+
+        .result-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+
+        .result-icon.win {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            box-shadow: 0 0 50px rgba(0, 245, 212, 0.5);
+        }
+
+        .result-icon.lose {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            box-shadow: 0 0 50px rgba(255, 45, 106, 0.5);
+        }
+
+        .result-title {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+
+        .result-title.win {
+            color: var(--accent-cyan);
+        }
+
+        .result-title.lose {
+            color: var(--accent-pink);
+        }
+
+        .result-song {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .result-guesses {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.95rem;
+        }
+
+        .play-again-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            border: none;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .play-again-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Confetti */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            pointer-events: none;
+            z-index: 101;
+        }
+
+        /* No song message */
+        .no-song {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .no-song h2 {
+            font-family: 'Dela Gothic One', cursive;
+            font-size: 1.5rem;
+            color: var(--accent-pink);
+            margin-bottom: 12px;
+        }
+
+        .no-song p {
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        #audio-player {
+            display: none;
+        }
+
+        /* Extra small screens */
+        @media (max-width: 360px) {
+            .logo {
+                font-size: 1.7rem;
+            }
+            
+            .guess-dot {
+                width: 36px;
+            }
+            
+            .play-btn-large {
+                width: 56px;
+                height: 56px;
+            }
+            
+            .play-btn-small {
+                width: 50px;
+                height: 50px;
+                min-width: 50px;
+            }
+        }
+
+        /* Landscape mode on mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .container {
+                padding: 10px 16px;
+            }
+            
+            header {
+                margin-bottom: 10px;
+            }
+            
+            .logo {
+                font-size: 1.5rem;
+            }
+            
+            .subtitle {
+                display: none;
+            }
+            
+            .guess-tracker {
+                margin-bottom: 10px;
+            }
+            
+            .guess-number {
+                margin-bottom: 10px;
+            }
+            
+            .player-section {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+            
+            .waveform {
+                height: 40px;
+                margin-bottom: 10px;
+            }
+            
+            .play-btn-large {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    
+    <div class="container">
+        <header>
+            <h1 class="logo">SARKDLE</h1>
+            <p class="subtitle">Daily Song Challenge</p>
+        </header>
+
+        <div id="game-content">
+            <p style="text-align: center; color: var(--text-muted);">Loading...</p>
+        </div>
+    </div>
+
+    <!-- Hidden audio player with multiple source formats for iOS compatibility -->
+    <audio id="audio-player" preload="auto" playsinline webkit-playsinline>
+        Your browser does not support audio.
+    </audio>
+
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-content">
+            <div class="result-icon" id="result-icon">🎵</div>
+            <h2 class="result-title" id="result-title">Amazing!</h2>
+            <p class="result-song" id="result-song">Song Name</p>
+            <p class="result-guesses" id="result-guesses">You got it in 3 guesses!</p>
+            <button class="play-again-btn" onclick="location.reload()">Play Again Tomorrow</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - UPDATE THIS DAILY!
+        // ============================================
+        const DAILY_SONG = {
+            // For iPhone compatibility, provide BOTH .mp3 and .webm versions
+            // Name them the same but with different extensions: song2.mp3 and song2.webm
+            audioFileMP3: "song2.mp3",   // For iPhone/Safari
+            audioFileWebm: "song2.webm", // For Android/Chrome
+            answer: "Kış Güneşi",
+            artist: "Tarkan",
+            releaseDate: "1994",
+            date: "2026-02-15"
+        };
+
+        const TIME_REVEALS = [2, 4, 7, 11, 14, 0];
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        let currentGuess = 0;
+        let guessHistory = [];
+        let gameOver = false;
+        let isPlaying = false;
+        let stopTimer = null;
+        let audio = null;
+        let helpOpen = false;
+
+        // ============================================
+        // HINT FUNCTIONS
+        // ============================================
+        function generateBlanks(songName) {
+            return songName.split(' ').map(function(word) {
+                return '_'.repeat(word.length);
+            }).join(' ');
+        }
+
+        function generateFirstLetters(songName) {
+            return songName.split(' ').map(function(word) {
+                if (word.length === 0) return '';
+                return word[0].toUpperCase() + '_'.repeat(word.length - 1);
+            }).join(' ');
+        }
+
+        function getHints() {
+            var hints = [];
+            
+            if (currentGuess >= 1) {
+                hints.push({ icon: '📅', label: 'Released', value: DAILY_SONG.releaseDate });
+            }
+            
+            if (currentGuess >= 2) {
+                hints.push({ icon: '🎤', label: 'Artist', value: DAILY_SONG.artist });
+            }
+            
+            if (currentGuess === 3) {
+                hints.push({ icon: '💡', label: 'Title', value: generateBlanks(DAILY_SONG.answer), isBlanks: true });
+            }
+            
+            if (currentGuess >= 4) {
+                hints.push({ icon: '💡', label: 'Title', value: generateFirstLetters(DAILY_SONG.answer), isBlanks: true });
+            }
+            
+            return hints;
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+        
+        function isSafari() {
+            return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        }
+        
+        window.onload = function() {
+            audio = document.getElementById('audio-player');
+            
+            // Use MP3 for iOS/Safari, WebM for others
+            if (isIOS() || isSafari()) {
+                audio.src = DAILY_SONG.audioFileMP3;
+                console.log('Using MP3 for iOS/Safari');
+            } else {
+                audio.src = DAILY_SONG.audioFileWebm;
+                console.log('Using WebM');
+            }
+            
+            // Render game immediately - audio will load on user interaction
+            renderGame();
+        };
+
+        // ============================================
+        // RENDERING
+        // ============================================
+        function renderGame() {
+            var gameContent = document.getElementById('game-content');
+            var hints = getHints();
+            
+            var timeHintText = '';
+            if (currentGuess === 5) {
+                timeHintText = 'Listen to the <span>FULL SONG</span>!';
+            } else {
+                timeHintText = 'Listen to <span>' + TIME_REVEALS[currentGuess] + ' seconds</span>';
+            }
+            
+            var html = '';
+            
+            // Guess tracker
+            html += '<div class="guess-tracker">';
+            for (var i = 0; i < 6; i++) {
+                var classes = 'guess-dot';
+                if (i < currentGuess) classes += ' used';
+                if (i === currentGuess && !gameOver) classes += ' current';
+                html += '<div class="' + classes + '"></div>';
+            }
+            html += '</div>';
+            
+            // Guess number
+            html += '<p class="guess-number">Guess <span>' + (currentGuess + 1) + '</span> of 6</p>';
+            
+            // Player section
+            html += '<div class="player-section">';
+            html += '<div class="waveform" id="waveform">';
+            for (var i = 0; i < 35; i++) {
+                var height = 15 + Math.random() * 35;
+                html += '<div class="wave-bar" style="height: ' + height + 'px; animation-delay: ' + (i * 0.04) + 's"></div>';
+            }
+            html += '</div>';
+            html += '<button class="play-btn-large" id="play-btn-large" onclick="playSnippet()">';
+            html += '<svg viewBox="0 0 24 24" id="play-icon-large"><path d="M8 5v14l11-7z"/></svg>';
+            html += '</button>';
+            html += '<p class="time-hint">' + timeHintText + '</p>';
+            html += '</div>';
+            
+            // Hints section
+            if (hints.length > 0) {
+                html += '<div class="hints-section">';
+                html += '<h3>🔓 Hints</h3>';
+                for (var i = 0; i < hints.length; i++) {
+                    var hint = hints[i];
+                    var blanksClass = hint.isBlanks ? ' blanks' : '';
+                    html += '<div class="hint-item">';
+                    html += '<span class="hint-icon">' + hint.icon + '</span>';
+                    html += '<span class="hint-label">' + hint.label + ':</span>';
+                    html += '<span class="hint-value' + blanksClass + '">' + hint.value + '</span>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            // Input section
+            var disabledAttr = gameOver ? ' disabled' : '';
+            html += '<div class="input-section">';
+            html += '<input type="text" class="guess-input" id="guess-input" placeholder="Enter song name..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"' + disabledAttr + '>';
+            
+            // Button row with Play + Submit
+            html += '<div class="button-row">';
+            html += '<button class="play-btn-small" id="play-btn-small" onclick="playSnippet()">';
+            html += '<svg viewBox="0 0 24 24" id="play-icon-small"><path d="M8 5v14l11-7z"/></svg>';
+            html += '</button>';
+            html += '<button class="submit-btn" id="submit-btn"' + disabledAttr + '>Submit</button>';
+            html += '</div>';
+            
+            html += '<button class="skip-btn" id="skip-btn"' + disabledAttr + '>Skip (' + (5 - currentGuess) + ' remaining)</button>';
+            html += '</div>';
+            
+            // Guess history - now after skip button
+            if (guessHistory.length > 0) {
+                html += '<div class="guess-history">';
+                html += '<h3>Previous Guesses</h3>';
+                for (var i = 0; i < guessHistory.length; i++) {
+                    var guess = guessHistory[i];
+                    var itemClass = guess.skipped ? 'skipped' : 'wrong';
+                    var text = guess.skipped ? 'Skipped' : guess.text;
+                    html += '<div class="history-item ' + itemClass + '">';
+                    html += '<span class="number">' + (i + 1) + '</span>';
+                    html += '<span class="text">' + text + '</span>';
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            // How to Play toggle
+            var openClass = helpOpen ? ' open' : '';
+            var showClass = helpOpen ? ' show' : '';
+            html += '<button class="help-toggle' + openClass + '" id="help-toggle" onclick="toggleHelp()">';
+            html += '<svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>';
+            html += 'How to Play';
+            html += '</button>';
+            
+            html += '<div class="instructions' + showClass + '" id="instructions">';
+            html += '<h3>How to Play</h3>';
+            html += '<p>Listen to the song and guess its name. Wrong guesses reveal more of the song and unlock hints!<br><br>';
+            html += '• Guess 2 → Release Date<br>';
+            html += '• Guess 3 → Artist<br>';
+            html += '• Guess 4 → Word lengths<br>';
+            html += '• Guess 5 → First letters<br>';
+            html += '• Guess 6 → Full song</p>';
+            html += '</div>';
+            
+            gameContent.innerHTML = html;
+            
+            // Add event listeners
+            document.getElementById('submit-btn').onclick = submitGuess;
+            document.getElementById('skip-btn').onclick = skipGuess;
+            document.getElementById('guess-input').onkeypress = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitGuess();
+                }
+            };
+            
+            // Focus input (with slight delay for mobile)
+            setTimeout(function() {
+                var input = document.getElementById('guess-input');
+                if (input && !gameOver) {
+                    // Don't auto-focus on mobile to prevent keyboard popup
+                    if (window.innerWidth > 768) {
+                        input.focus();
+                    }
+                }
+            }, 150);
+        }
+
+        function renderNoSong() {
+            var gameContent = document.getElementById('game-content');
+            gameContent.innerHTML = 
+                '<div class="no-song">' +
+                '<h2>No Song Today</h2>' +
+                '<p>The daily song could not be loaded.<br>Check back later!</p>' +
+                '</div>';
+        }
+
+        function toggleHelp() {
+            helpOpen = !helpOpen;
+            var toggle = document.getElementById('help-toggle');
+            var instructions = document.getElementById('instructions');
+            
+            if (helpOpen) {
+                toggle.classList.add('open');
+                instructions.classList.add('show');
+            } else {
+                toggle.classList.remove('open');
+                instructions.classList.remove('show');
+            }
+        }
+
+        // ============================================
+        // AUDIO PLAYBACK
+        // ============================================
+        var audioReady = false;
+        
+        function playSnippet() {
+            if (isPlaying || !audio) return;
+            
+            // Stop any existing playback
+            audio.pause();
+            if (stopTimer) clearTimeout(stopTimer);
+            
+            var duration;
+            var startTime = 0;
+            
+            if (currentGuess === 0) {
+                startTime = 0;
+                duration = TIME_REVEALS[0];
+            } else if (currentGuess >= 1 && currentGuess <= 4) {
+                duration = TIME_REVEALS[currentGuess];
+                // Only calculate random start if audio duration is known
+                if (audio.duration && !isNaN(audio.duration) && audio.duration > 0) {
+                    var maxStart = Math.max(0, audio.duration - duration - 5);
+                    startTime = Math.random() * maxStart;
+                } else {
+                    startTime = 0;
+                }
+            } else if (currentGuess === 5) {
+                startTime = 0;
+                duration = (audio.duration && !isNaN(audio.duration)) ? audio.duration : 300;
+            }
+            
+            // For iOS, we need to load first, then seek, then play
+            function startPlayback() {
+                try {
+                    audio.currentTime = startTime;
+                } catch (e) {
+                    console.log('Could not set start time:', e);
+                }
+                
+                var playPromise = audio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(function() {
+                        isPlaying = true;
+                        updatePlayButtons(true);
+                        animateWaveform(true);
+                        
+                        if (currentGuess !== 5) {
+                            stopTimer = setTimeout(function() {
+                                stopAudio();
+                            }, duration * 1000);
+                        }
+                    }).catch(function(error) {
+                        console.log('Playback failed:', error);
+                        isPlaying = false;
+                        updatePlayButtons(false);
+                        animateWaveform(false);
+                    });
+                } else {
+                    isPlaying = true;
+                    updatePlayButtons(true);
+                    animateWaveform(true);
+                    
+                    if (currentGuess !== 5) {
+                        stopTimer = setTimeout(function() {
+                            stopAudio();
+                        }, duration * 1000);
+                    }
+                }
+            }
+            
+            // Check if audio is ready
+            if (audio.readyState >= 2) {
+                startPlayback();
+            } else {
+                // iOS needs to load audio first
+                audio.load();
+                audio.oncanplay = function() {
+                    audio.oncanplay = null;
+                    startPlayback();
+                };
+                // Fallback timeout
+                setTimeout(function() {
+                    if (!isPlaying && audio.readyState >= 2) {
+                        startPlayback();
+                    }
+                }, 1000);
+            }
+        }
+
+        function stopAudio() {
+            if (stopTimer) {
+                clearTimeout(stopTimer);
+                stopTimer = null;
+            }
+            if (audio) {
+                audio.pause();
+            }
+            isPlaying = false;
+            updatePlayButtons(false);
+            animateWaveform(false);
+        }
+
+        function updatePlayButtons(playing) {
+            var btnLarge = document.getElementById('play-btn-large');
+            var btnSmall = document.getElementById('play-btn-small');
+            var iconLarge = document.getElementById('play-icon-large');
+            var iconSmall = document.getElementById('play-icon-small');
+            
+            if (playing) {
+                if (btnLarge) btnLarge.classList.add('playing');
+                if (btnSmall) btnSmall.classList.add('playing');
+                var pauseIcon = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+                if (iconLarge) iconLarge.innerHTML = pauseIcon;
+                if (iconSmall) iconSmall.innerHTML = pauseIcon;
+            } else {
+                if (btnLarge) btnLarge.classList.remove('playing');
+                if (btnSmall) btnSmall.classList.remove('playing');
+                var playIcon = '<path d="M8 5v14l11-7z"/>';
+                if (iconLarge) iconLarge.innerHTML = playIcon;
+                if (iconSmall) iconSmall.innerHTML = playIcon;
+            }
+        }
+
+        function animateWaveform(playing) {
+            var bars = document.querySelectorAll('.wave-bar');
+            for (var i = 0; i < bars.length; i++) {
+                if (playing) {
+                    bars[i].classList.add('playing');
+                } else {
+                    bars[i].classList.remove('playing');
+                }
+            }
+        }
+
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        function submitGuess() {
+            var input = document.getElementById('guess-input');
+            if (!input) return;
+            
+            var guess = input.value.trim();
+            if (!guess || gameOver) return;
+
+            if (guess.toLowerCase() === DAILY_SONG.answer.toLowerCase()) {
+                gameOver = true;
+                stopAudio();
+                showResult(true);
+            } else {
+                guessHistory.push({ text: guess, skipped: false });
+                currentGuess++;
+
+                if (currentGuess >= 6) {
+                    gameOver = true;
+                    stopAudio();
+                    showResult(false);
+                } else {
+                    stopAudio();
+                    renderGame();
+                }
+            }
+        }
+
+        function skipGuess() {
+            if (gameOver) return;
+
+            guessHistory.push({ text: '', skipped: true });
+            currentGuess++;
+
+            if (currentGuess >= 6) {
+                gameOver = true;
+                stopAudio();
+                showResult(false);
+            } else {
+                stopAudio();
+                renderGame();
+            }
+        }
+
+        // ============================================
+        // RESULTS
+        // ============================================
+        function showResult(won) {
+            var overlay = document.getElementById('result-overlay');
+            var icon = document.getElementById('result-icon');
+            var title = document.getElementById('result-title');
+            var song = document.getElementById('result-song');
+            var guesses = document.getElementById('result-guesses');
+
+            if (won) {
+                icon.className = 'result-icon win';
+                icon.textContent = '🎉';
+                title.className = 'result-title win';
+                title.textContent = getWinMessage();
+                guesses.textContent = 'You got it in ' + (currentGuess + 1) + ' guess' + (currentGuess === 0 ? '' : 'es') + '!';
+                createConfetti();
+            } else {
+                icon.className = 'result-icon lose';
+                icon.textContent = '😔';
+                title.className = 'result-title lose';
+                title.textContent = 'Better luck tomorrow!';
+                guesses.textContent = 'You ran out of guesses';
+            }
+
+            song.textContent = '🎵 ' + DAILY_SONG.answer + ' - ' + DAILY_SONG.artist;
+            
+            setTimeout(function() {
+                overlay.classList.add('show');
+            }, 300);
+        }
+
+        function getWinMessage() {
+            var messages = ['INCREDIBLE!', 'AMAZING!', 'GREAT JOB!', 'WELL DONE!', 'NICE!', 'PHEW!'];
+            return messages[currentGuess] || 'YOU WIN!';
+        }
+
+        // ============================================
+        // CONFETTI
+        // ============================================
+        function createConfetti() {
+            var colors = ['#ff2d6a', '#00f5d4', '#9b5de5', '#fff'];
+            
+            for (var i = 0; i < 80; i++) {
+                (function(index) {
+                    setTimeout(function() {
+                        var confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * 100 + 'vw';
+                        confetti.style.top = '-10px';
+                        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                        
+                        document.body.appendChild(confetti);
+
+                        var animation = confetti.animate([
+                            { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+                            { transform: 'translateY(100vh) rotate(' + (720 + Math.random() * 360) + 'deg)', opacity: 0 }
+                        ], {
+                            duration: 2000 + Math.random() * 2000,
+                            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                        });
+
+                        animation.onfinish = function() { confetti.remove(); };
+                    }, index * 25);
+                })(i);
+            }
+        }
+    </script>
+</body>
+</html>
